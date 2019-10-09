@@ -66,3 +66,7 @@ gem 'kaminari', '~> 0.17.0'
 gem 'kaminari-bootstrap', '~> 3.0.1'
 
 gem 'pry-byebug', group: :development
+
+group :production do
+  gem 'pg', '>= 0.18', '< 2.0'
+end
