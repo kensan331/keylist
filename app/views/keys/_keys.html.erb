@@ -1,0 +1,127 @@
+<% if logged_in? %>
+  <!DOCTYPE html>
+  <html lang="ja">
+    <head>
+      <!-- Required meta tags -->
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+      <!-- Bootstrap CSS -->
+      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css">
+      <style>
+       #header{
+         background: red;
+       }
+       #left{
+         background: blue;
+       }
+       #center{
+         background: pink;
+       }
+       #right{
+         background: orange;
+       }
+       #footer{
+         background: skyblue;
+       }
+       #nest-left{
+         background: silver;
+       }
+       #nest-right{
+         background: gold;
+       }
+      </style>
+      <title>Responsive</title>
+    </head>
+    <body>
+      <div class="container">
+        <!-- ここにはいれない -->
+        <div class="row">
+          <!-- ここにはいれない -->
+          <div class="col-12" >
+            <h1>鍵リスト</h1>
+          </div>
+        </div>
+        <div class="row">
+            <table class="table">
+              <tr>
+                <th>鍵No.</th>
+                <th>車両</th>
+                <th>処理</th>
+                <th>使用者</th>
+              </tr>
+              <% @keys.each do |key| %>
+                <tr>
+                  <td>
+                    <%= key.key_number %>
+                  </td>
+                  <td>
+                    <%= link_to key.car_name, key_path(key) %>
+                  </td> 
+                  <td>
+                  <% if key.status_now == :exist %>
+                    <%= link_to "持ち出し", histories_path(key_id: key.id), method: :post %>
+                  <% elsif key.status_now == :lent %>
+                    <% if key.recent_user == current_user %>
+                      <%= link_to "返却", history_replace_path(History.where(key: key, ended_at: nil).order(created_at: :desc).first), method: :put %> / <%= link_to "紛失", history_lost_path(History.where(key: key, ended_at: nil).order(created_at: :desc).first), method: :put %>
+                    <% else %>
+                      貸し出し中
+                    <% end %>
+                  <% end %>
+                  <% if key.status_now == :lost %>
+                    <% if key.recent_user == current_user %>
+                      <%= link_to "発見", history_replace_path(History.where(key: key, ended_at: nil).order(created_at: :desc).first), method: :put %>
+                    <% else %>
+                      紛失中
+                    <% end %>
+                  <% end %>
+                  </td>
+                  <td>
+                    <% if key.status_now == :exist %>
+                      -
+                    <% end %>
+                    <% if key.status_now == :lent && key.recent_user.present? %>
+                      <%= key.recent_user.name %>(<%= key.recent_user.employee_number %>)
+                    <% elsif key.status_now == :lost && key.recent_user.present? %>
+                      <%= key.recent_user.name %>(<%= key.recent_user.employee_number %>)
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </table>
+            <%= paginate @keys %>
+          </div>
+        </div>
+      </div>
+      <!-- Optional JavaScript -->
+      <!-- jQuery first, then Popper.js, then Bootstrap JS, then Font Awesome -->
+      <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"></script>
+      <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js"></script>
+      <script defer src="https://use.fontawesome.com/releases/v5.7.2/js/all.js"></script>
+    </body>
+  </html>
+  <% else %>
+    <div class="text-center">
+      <h1>ログイン</h1>
+    </div>
+    <div class="col-sm-6 offset-sm-3">
+
+    <%= form_with(url: login_path, scope: :session, local: true) do |f| %>
+
+      <div class="form-group">
+        <%= f.label :employee_number, '社員番号' %>
+        <%= f.number_field :employee_number, class: 'form-control' %>
+      </div>
+
+      <div class="form-group">
+        <%= f.label :password, 'パスワード' %>
+        <%= f.password_field :password, class: 'form-control' %>
+      </div>
+
+      <%= f.submit 'ログイン', class: 'btn btn-primary btn-block' %>
+    <% end %>
+
+    <p>アカウントをお持ちでないですか？ <%= link_to 'アカウント作成', signup_path %></p>
+  </div>
+<% end %>
